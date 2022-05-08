@@ -1,15 +1,8 @@
 // required node modules
-// const sequelize = require("./config/connection");
 const mysql = require("mysql2");
 const inquirer = require("inquirer");
 const cTable = require("console.table");
 require("dotenv").config();
-
-// // import models
-// const Department = require("./models/Department");
-// const Role = require("./models/Role");
-// const Employee = require("./models/Employee");
-// not suppose to use sequelize...suppose to just use mysql2.
 
 // connect to DB and start server
 
@@ -19,7 +12,7 @@ const connection = mysql.createConnection({
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME,
 });
-
+// if connection error, throw error, otherwise...
 connection.connect(err => {
     if (err) throw err;
     console.log("Connection Established...");
@@ -73,11 +66,11 @@ const userPrompt = () => {
         };
 
         if (choices === "Add an Employee") {
-            // function here
+            addEmployee();
         };
 
         if (choices === "Add a Department") {
-            // function here
+            addDepartment();
         };
 
         if (choices === "Add a Role") {
@@ -175,36 +168,80 @@ const addEmployee = () => {
                 return true;
             }
         },
-        {
-            type: "input",
-            message: "What is this employee's role?",
-            name: "employeeRole",
-            validate: (answer) => {
-                if (answer.length < 1) {
-                    return console.log("Please enter a valid role/job title...\n");
-                }
-                return true;
-            }
-        },
-        {
-            type: "input",
-            message: "Who is this employee's manager?",
-            name: "employeeManager",
-            validate: (answer) => {
-                if (answer.length < 1) {
-                    return console.log("Please enter a valid manager name...\n");
-                }
-                return true;
-            }
-        }
-    ]);
+    ])
+    .then( (answers) => { // take answer above
 
+        // store first and last name
+        const empInfo = [answers.firstName, answers.lastName];
+
+        // grab already made roles
+        const currRoles = `SELECT role.id, role.title FROM role`;
+
+        connection.promise().query(currRoles, (err, data) => {
+            if (err) throw err;
+            // map role.id & role.title 
+            const roles = data.map( ({ id, title }) => ({ name: title, value: id }));
+
+            // ask what role employee has
+            inquirer.prompt([
+                {
+                    type: "list",
+                    message: "What is this employee's role?",
+                    name: "role",
+                    choices: roles
+                },
+            ]);
+        })
+        .then(selectedRole => {
+            // role = role selected above
+            const role = selectedRole.role;
+            // push role into empInfo above
+            empInfo.push(role);
+
+            // manager choices
+            const managerInfo = `SELECT * FROM employee`;
+
+            connection.promise().query(managerInfo, (err, data) => {
+                if (err) throw err;
+
+                const managers = data.map(({ id, first_name, last_name }) =>
+                ({ name: first_name + " " + last_name, value: id }));
+
+                inquirer.prompt([
+                    {
+                        type: "list",
+                        message: "Who is this employee's manager?",
+                        name: "manager",
+                        choices: managers
+                    },
+                ])
+                .then( selectedManager => {
+                    // manager = manager selected above
+                    const manager = selectedManager.manager;
+                    // push manager into empInfo above
+                    empInfo.push(manager);
+
+                    const sql = `INSERT INTO employee (first_name, last_name, role_id, manager_id,)
+                    VALUES (?, ?, ?, ?)`;
+
+                    connection.query(sql, empInfo, (err, result) => {
+                        if (err) throw err;
+                        console.log("New employee successfully added!");
+
+                        // prompt user what to do
+                        userPrompt();
+                    });
+                });
+            });
+
+        });
+    });
 };
 
 // Add Department
 const addDepartment = () => {
 
-    return inquirer.prompt([
+    inquirer.prompt([
         {
             type: "input",
             message: "What is the name of the department?",
@@ -218,7 +255,16 @@ const addDepartment = () => {
             }
         },
     ])
-    
+    .then( answer => {
+        const sql = `INSERT INTO department (name) VALUES (?)`;
+
+        connection.query(sql, answer.department, (err, result) => {
+            if (err) throw err;
+            console.log(answer.department + " added successfully to departments.");
+
+             userPrompt();
+        });
+    });
 };
 
 
