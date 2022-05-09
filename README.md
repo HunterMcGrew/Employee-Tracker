@@ -9,7 +9,7 @@ A simple console-based employee tracker system.
 To install: 
 + run "npm i"
 + set up connection to your own database using the file ".env.EXAMPLE" 
-+ remoive .EXAMPLE from .env file and make sure everythings correct
++ remove ".EXAMPLE: from .env filename and make sure everythings inside is correct
 + start the server
 + track your employees, roles, and departments!
 
