@@ -268,6 +268,7 @@ const addDepartment = () => {
     });
 };
 
+// add a role
 const addRole = () => {
 
     inquirer.prompt([
@@ -336,6 +337,7 @@ const addRole = () => {
     });
 };
 
+//update selected employees role
 const updateEmployeeRole = () => {
 
     const empSql = `SELECT first_name, last_name, id FROM employee`;
@@ -383,7 +385,7 @@ const updateEmployeeRole = () => {
                     choices: roles
                 },
             ])
-            .then( answers => { // need to tell it which employee
+            .then( answers => { 
                 console.log("answers:", answers);                
                 const sql = `UPDATE employee SET role_id = ? WHERE id = ?`;
 
