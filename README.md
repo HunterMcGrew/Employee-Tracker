@@ -4,6 +4,8 @@ A simple console-based employee tracker system.
 
 ![image](https://github.com/HunterMcGrew/Employee-Tracker/blob/main/employee_tracker.PNG?raw=true)
 
+[Video Demo](https://youtu.be/GReaDGVQSN4)
+
 ## Installation & Usage Instructions
 
 To install: 
